@@ -1,0 +1,43 @@
+{
+  "name": "protoc-action",
+  "version": "1.0.0",
+  "private": true,
+  "description": "protoc with Dart plugin for use in actions",
+  "main": "lib/index.js",
+  "scripts": {
+    "build-tsc": "tsc",
+    "build-ncc": "ncc build",
+    "build": "run-s build-tsc build-ncc",
+    "format": "prettier --write **/*.ts **/*.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abelfodil/protoc-action.git"
+  },
+  "keywords": [
+    "actions",
+    "node",
+    "dart",
+    "protoc",
+    "setup"
+  ],
+  "author": "Anes Belfodil",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.2.5",
+    "@actions/exec": "^1.0.4",
+    "@actions/tool-cache": "^1.6.0",
+    "uuid": "^8.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.12.38",
+    "@types/uuid": "^8.3.0",
+    "@vercel/ncc": "^0.24.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.1.1",
+    "typescript": "^4.0.2"
+  },
+  "resolutions": {
+    "minimist": "^1.2.5"
+  }
+}

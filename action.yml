@@ -1,0 +1,19 @@
+name: "gRPC's protoc action"
+description: "Setup your runner with protoc environment"
+author: "Anes Belfodil"
+inputs:
+  protoc-version:
+    description: "The protoc version to make available on the path"
+    required: false
+  enable-dart:
+    description: "Enable protoc Dart generator plugin"
+    required: false
+  dart-version:
+    description: "The Dart version to make available on the path (ignored if enable-dart isn't true)"
+    required: false
+runs:
+  using: "node12"
+  main: "dist/index.js"
+branding:
+  icon: "zap"
+  color: "blue"
