@@ -5,6 +5,18 @@ inputs:
   protoc-version:
     description: "The protoc version to make available on the path"
     required: false
+  enable-grpc:
+    description: "Enable gRPC generator plugins"
+    required: false
+  grpc-version:
+    description: "The gRPC plugins version to make available on the path"
+    required: false
+  enable-grpc-web:
+    description: "Enable gRPC web generator plugin"
+    required: false
+  grpc-web-version:
+    description: "The gRPC web plugin version to make available on the path"
+    required: false
   enable-dart:
     description: "Enable protoc Dart generator plugin"
     required: false

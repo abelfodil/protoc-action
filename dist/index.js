@@ -43,6 +43,16 @@ function run() {
         try {
             const protocVersion = core.getInput('protoc-version') || '3.13.0';
             yield installer_1.getProtoc(protocVersion);
+            const enableGRPC = core.getInput('enable-grpc') || false;
+            if (enableGRPC) {
+                const grpcVersion = core.getInput('grpc-version') || '1.32.0';
+                yield installer_1.getGRPC(grpcVersion);
+            }
+            const enableGRPCWeb = core.getInput('enable-grpc-web') || false;
+            if (enableGRPCWeb) {
+                const grpcWebVersion = core.getInput('grpc-web-version') || '1.2.1';
+                yield installer_1.getGRPCWeb(grpcWebVersion);
+            }
             const enableDart = core.getInput('enable-dart') || false;
             if (enableDart) {
                 const dartVersion = core.getInput('dart-version') || '2.9.2';
@@ -93,11 +103,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getDartPlugin = exports.getProtoc = void 0;
+exports.getDartPlugin = exports.getGRPCWeb = exports.getGRPC = exports.getProtoc = void 0;
 const core = __importStar(__webpack_require__(186));
 const tc = __importStar(__webpack_require__(784));
 const path = __importStar(__webpack_require__(622));
 const child_process = __importStar(__webpack_require__(129));
+const exec_1 = __webpack_require__(514);
 const uuid_1 = __webpack_require__(552);
 function getProtoc(version) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -107,11 +118,40 @@ function getProtoc(version) {
             linux: 'linux-x86_64',
         }[process.platform];
         const downloadUrl = `https://github.com/protocolbuffers/protobuf/releases/download/v${version}/protoc-${version}-${platformSuffix}.zip`;
-        const toolPath = tc.find('protoc', version) ? tc.find('protoc', version) : yield downloadTool(downloadUrl, 'protoc', version);
+        const toolPath = tc.find('protoc', version) ? tc.find('protoc', version) : yield downloadZippedTool(downloadUrl, 'protoc', version);
         core.addPath(path.resolve(path.join(toolPath, 'bin')));
     });
 }
 exports.getProtoc = getProtoc;
+function getGRPC(version) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const name = 'grpc';
+        let toolPath = tc.find(name, version);
+        if (!toolPath) {
+            const srcDir = path.resolve(path.join('grpc'));
+            yield exec_1.exec('git', ['clone', '--recurse-submodules', '-b', 'v' + version, 'https://github.com/grpc/grpc', srcDir]);
+            yield exec_1.exec('make', ['plugins', '-j'], { cwd: srcDir });
+            const outputDir = path.join(srcDir, 'bins', 'opt');
+            toolPath = yield tc.cacheDir(outputDir, name, version);
+        }
+        core.addPath(path.resolve(toolPath));
+    });
+}
+exports.getGRPC = getGRPC;
+function getGRPCWeb(version) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const platformSuffix = {
+            win32: 'windows-x86_64.exe',
+            darwin: 'darwin-x86_64',
+            linux: 'linux-x86_64',
+        }[process.platform];
+        const downloadUrl = `https://github.com/grpc/grpc-web/releases/download/${version}/protoc-gen-grpc-web-${version}-${platformSuffix}`;
+        const name = 'protoc-gen-grpc-web';
+        const toolPath = tc.find(name, version) ? tc.find(name, version) : yield downloadTool(downloadUrl, name, version);
+        core.addPath(path.resolve(path.join(toolPath)));
+    });
+}
+exports.getGRPCWeb = getGRPCWeb;
 function getDartPlugin(version) {
     return __awaiter(this, void 0, void 0, function* () {
         const platformSuffix = {
@@ -120,7 +160,7 @@ function getDartPlugin(version) {
             linux: 'linux-x64',
         }[process.platform];
         const downloadUrl = `https://storage.googleapis.com/dart-archive/channels/stable/release/${version}/sdk/dartsdk-${platformSuffix}-release.zip`;
-        const dartPath = tc.find('dart', version) ? tc.find('dart', version) : yield downloadTool(downloadUrl, 'dart', version);
+        const dartPath = tc.find('dart', version) ? tc.find('dart', version) : yield downloadZippedTool(downloadUrl, 'dart', version);
         core.addPath(path.resolve(path.join(dartPath, 'dart-sdk', 'bin')));
         const dartPluginsPath = tc.find('dart-plugins', version) ? tc.find('dart-plugins', version) : yield installDartPluginTool('dart-plugins', version);
         core.addPath(path.resolve(path.join(dartPluginsPath, 'bin')));
@@ -135,11 +175,20 @@ function installDartPluginTool(name, version) {
         return yield tc.cacheDir(pubCache, name, version);
     });
 }
-function downloadTool(downloadUrl, name, version) {
+function downloadZippedTool(downloadUrl, name, version) {
     return __awaiter(this, void 0, void 0, function* () {
         const zipFile = yield tc.downloadTool(downloadUrl, generateTempPath());
         const destinationDir = yield tc.extractZip(zipFile, generateTempPath());
         return yield tc.cacheDir(destinationDir, name, version);
+    });
+}
+function downloadTool(downloadUrl, name, version) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const destinationFile = yield tc.downloadTool(downloadUrl, generateTempPath());
+        if (process.platform !== 'win32') {
+            yield exec_1.exec('chmod', ['+x', destinationFile]);
+        }
+        return yield tc.cacheFile(destinationFile, name, name, version);
     });
 }
 function generateTempPath() {
