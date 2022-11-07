@@ -24,7 +24,7 @@ inputs:
     description: "The Dart version to make available on the path (ignored if enable-dart isn't true)"
     required: false
 runs:
-  using: "node12"
+  using: "node16"
   main: "dist/index.js"
 branding:
   icon: "zap"
